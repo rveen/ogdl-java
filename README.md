@@ -1,4 +1,6 @@
 ogdl-java
 =========
 
-OGDL Java library
+A Java library for working with OGDL textual and binary streams.
+
+(RV: Working in cleaning this up).

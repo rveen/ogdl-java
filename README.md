@@ -3,4 +3,6 @@ ogdl-java
 
 A Java library for working with OGDL textual and binary streams.
 
-(RV: Working in cleaning this up).
+Working in cleaning this up:
+
+- IGraph and IPath worthless.

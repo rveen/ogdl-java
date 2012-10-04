@@ -1,4 +1,4 @@
-Copyright (c) 2002-2012, Rolf Veen.
+Copyright (c) 2001-2012, Rolf Veen.
 
 Permission to use, copy, modify, and/or distribute this software for any purpose 
 with or without fee is hereby granted, provided that the above copyright notice 
@@ -14,4 +14,4 @@ PERFORMANCE OF THIS SOFTWARE.
 
 --
 (This is a simplified BSD license known as ISC license: 
-http://en.wikipedia.org/wiki/ISC_license).
+http://en.wikipedia.org/wiki/ISC_license)

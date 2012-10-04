@@ -1,5 +1,5 @@
-Libraries servlet-api.jar and commons-fileupload.jar como from the Apache Foundation.
-These are dependencies needed by the ogdl.template package.
+servlet-api.jar and commons-fileupload.jar come from the Apache Foundation.
+These are only needed by the ogdl.template package.
 
 Current versions used (not critical): 
 

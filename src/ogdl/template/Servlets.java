@@ -20,8 +20,6 @@ import java.io.UnsupportedEncodingException;
 import org.apache.commons.fileupload.servlet.*;
 import org.apache.commons.fileupload.disk.*;
 
-import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
-
 import java.util.TreeMap;
 import java.util.Set;
 import java.util.Iterator;

@@ -49,6 +49,10 @@ public class Graph implements IGraph
 	public static final String _OBJ = Types.OBJECT;
 	
 	public Graph() {
+		/* Warning: _NULL cannot be a zero length string unless EventHandlerGraph.event() is
+		 * modified. Events with null length are currently ignored, and also not written to
+		 * OGDL binary (see OgdlBinarryEmitter).
+		 */
 		this.name = _NULL;
 	}
 

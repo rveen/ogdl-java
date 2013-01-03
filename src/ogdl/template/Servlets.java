@@ -20,7 +20,7 @@ import java.io.UnsupportedEncodingException;
 import org.apache.commons.fileupload.servlet.*;
 import org.apache.commons.fileupload.disk.*;
 
-import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
+//import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 
 import java.util.TreeMap;
 import java.util.Set;
@@ -128,6 +128,7 @@ public class Servlets
 		/* Jetty and Apache don't return anything with getRemoteUser */
 
 		String u = req.getRemoteUser();
+		
 		if (u == null) {
 			/* try authentication header */
 			u = req.getHeader("authorization");

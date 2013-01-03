@@ -27,6 +27,9 @@ public class OgdlBinaryEmitter
     	final byte[] h = { 1, 'G', 0 };
     	out_write(bout,h);
     	
+    	/* This filtering of _NULL should not be necessary, but
+    	 * currently is needed at the reception side.
+    	 */
     	if (! g.getName().equals(Graph._NULL))
     		_writeBinary(0,g,bout);
     	else
@@ -47,6 +50,9 @@ public class OgdlBinaryEmitter
     	final byte[] h = { 1, 'G', 0 };
     	out_write(bout,h);
     	
+       	/* This filtering of _NULL should not be necessary, but
+    	 * currently is needed at the reception side.
+    	 */
     	if (! g.getName().equals(Graph._NULL))
     		_writeBinary(0,g,bout);
     	else
@@ -80,6 +86,10 @@ public class OgdlBinaryEmitter
     
     private static void writeTextNode (int level, String s, OutputStream out) throws IOException
     {
+    	/* Empty or null strings will not make it */
+    	if (s==null || s.length()==0)
+    		return;
+    	
        	// write level
     	multiByteInteger(level+1,out); 	
     	// write text

@@ -51,6 +51,9 @@ public class EventHandlerGraph implements IEventHandler
 
 	public void event(String s) 
 	{
+		//if (s == null || s.length() == 0)
+			//return;
+		
 //System.out.println("event: "+s);       
 		if (level>200) { 
 			System.out.println("EventHandlerGraph: ! level=200 at "+s);

@@ -51,10 +51,12 @@ public class EventHandlerGraph implements IEventHandler
 
 	public void event(String s) 
 	{
-		if (s == null || s.length() == 0)
+		if (s == null)
 			return;
 		
-//System.out.println("event: "+s);       
+	    //if (s.length() == 0)
+			//return; 
+		
 		if (level>200) { 
 			System.out.println("EventHandlerGraph: ! level=200 at "+s);
 			//return;
@@ -64,7 +66,6 @@ public class EventHandlerGraph implements IEventHandler
 		if (v[level] == null) {
 			System.out.println("EventHandlerGraph: ! level step at "+level);
 			throw new RuntimeException("FATAL: EventHandlerGraph: v[level] = null at level "+level);
-			//return;
 		}
 	
 		Graph node = new Graph(s);

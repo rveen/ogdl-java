@@ -26,8 +26,8 @@ import java.util.logging.Logger;
 public final class OgdlBinaryParser 
 {
 	public final static int CONTENT = 1; /* primary events, content related */
-	public final static int FORMAT = 2; /* secondary events, format related */
-	public final static int BINARY = 3; /* secondary events, format related */
+	public final static int FORMAT  = 2; /* secondary events, format related */
+	public final static int BINARY  = 3; /* secondary events, format related */
 
 	protected InputStream in = null;
 	protected RandomAccessFile inr = null;
@@ -170,7 +170,18 @@ public final class OgdlBinaryParser
 
 			return true;
 		}
-		return false;
+		else {
+			event.level(lev);
+			event.event("");
+		}
+		
+		return true;
+		
+		/* XXX: If we return true here, then null values can be transferred,
+		 * and thus empty nodes. Check this.
+		 * (Empty (null) nodes are used to represent lists)
+		 */
+		//return false;
 	}
 
 	public void parse() throws Exception 

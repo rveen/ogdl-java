@@ -291,6 +291,7 @@ public class RFServer implements Runnable
 						f = (IFunction) rf.h.get(fn);
 						if (f == null) 
 						{
+							/* This breaks if NULL nodes are not filtered out (in OgdlBinaryEmitter) */
 							IGraph c = rf.cla.getNode(fn);
 							if (c == null)
 								log.severe("No class data for "+fn);

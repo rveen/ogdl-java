@@ -86,7 +86,9 @@ public class OgdlBinaryEmitter
     
     private static void writeTextNode (int level, String s, OutputStream out) throws IOException
     {
-    	/* Empty or null strings will not make it */
+    	/* Empty or null strings will not make it.
+    	 * XXX: But it would be nice if they could be sent, as NULL nodes. */
+    	
     	if (s==null || s.length()==0)
     		return;
     	

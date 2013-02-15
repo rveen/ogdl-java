@@ -411,6 +411,8 @@ if (o!=null) {
 			return _mul(o1,o2, true);
 		else if (s.equals("=="))
 			return _equals(o1,o2, true);
+		else if (s.equals("~="))
+			return _contains(o1,o2);
 		else if (s.equals("!="))
 			return _equals(o1,o2, false);
 		else if (s.equals(">"))
@@ -595,6 +597,25 @@ if (o!=null) {
 	{	
 		set(path, o2,g);
 		return o2;
+	}
+	
+	/** Test if b appears in a. For that both 
+	 * should be strings.
+	 */
+	
+	private static Object _contains(Object a, Object b)
+			throws Exception 
+	{
+		if (a==null || b==null)
+			return new Boolean(false);
+		
+	    String sa = a.toString();
+	    String sb = b.toString();
+	    
+		sa = sa.toLowerCase();
+		sb = sb.toLowerCase();
+		
+		return new Boolean( sa.indexOf(sb) != -1 );
 	}
 
 	private static Object _equals(Object a, Object b, boolean polarity)

@@ -300,6 +300,8 @@ public class Evaluate2
 
 	static Object eval_binary(IGraph e, IGraph g) throws Exception 
 	{
+//System.out.println("---\n"+e+"\n---\n"+g+"\n---");		
+		
 		/* Check for correct number of operands
 		 */
 
@@ -333,6 +335,8 @@ public class Evaluate2
 			return _mul(o1,o2, true);
 		else if (s.equals("=="))
 			return _equals(o1,o2, true);
+		else if (s.equals("~="))
+			return _contains(o1,o2);
 		else if (s.equals("!="))
 			return _equals(o1,o2, false);
 		else if (s.equals(">"))
@@ -639,6 +643,26 @@ public class Evaluate2
 	{	
 		set(path, o2,g);
 		return o2;
+	}
+	
+	/** Test if b appears in a. For that both 
+	 * should be strings.
+	 */
+	
+	private static Object _contains(Object a, Object b)
+			throws Exception 
+	{
+		if (a==null || b==null)
+			return new Boolean(false);
+		
+//System.out.println("_contains: "+a+"/"+b);		
+	    String sa = a.toString();
+	    String sb = b.toString();
+	    
+		sa = sa.toLowerCase();
+		sb = sb.toLowerCase();
+		
+		return new Boolean( sa.indexOf(sb) != -1 );
 	}
 
 	static Object _equals(Object a, Object b, boolean polarity)

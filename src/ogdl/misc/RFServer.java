@@ -24,7 +24,7 @@ import java.util.Vector;
 public class RFServer implements Runnable
 {
 	final Vector  handlers = new Vector();
-    final boolean useNagle = false; // disable Nagle algorithm
+    final boolean useNagle = false; 
     final Thread  acceptThread;
     int port;
     ServerSocket  ssocket;
@@ -94,34 +94,20 @@ public class RFServer implements Runnable
 
                 if (!useNagle)
                 {
-                    // Disable Nagle algorithm (This is as an example only.
-                    // Be judicious about doing this in your applications.)
                     socket.setTcpNoDelay(true);
                 }
 
-                // create a handler for the new socket connection
                 RFHandler handler = new RFHandler(this,socket);
-                Thread hz = new Thread(handler);
-                hz.start();
+                Thread t = new Thread(handler);
+                t.start();
                 // handlers.addElement(handler);
             }
             catch (IOException e)
             {
                 e.printStackTrace();
-
-                // We attempt to keep running. If large numbers of
-                // repeated errors occur, a real server might need
-                // to handle that case (e.g. stop running, send
-                // warning to system console, etc.)
             }
         }
-
-        // Our parent calls method 'close' which sets the 'aborting'
-        // flag and closes the server socket connection. There's no
-        // other way to fall out of the 'while' loop, so we don't have
-        // to close the server socket connection here.
     }
-    // Copyright 2003 Nokia Corporation.
 
 	void close()
     {
@@ -144,7 +130,6 @@ public class RFServer implements Runnable
             }
             catch (IOException e)
             {
-                // ignore
             }
         }
 
@@ -200,7 +185,7 @@ public class RFServer implements Runnable
 		    return;
 		}
 		
-		RFServer rf = new RFServer(port,cfg,ssl); 
+		new RFServer(port,cfg,ssl); 
 		
 		if (!ssl) {   
 		    System.out.println("[OK] Starting RFServer on port "+port);

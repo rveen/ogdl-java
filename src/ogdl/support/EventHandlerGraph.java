@@ -46,6 +46,7 @@ public class EventHandlerGraph implements IEventHandler
 	public void clear() 
 	{
 		g = new Graph();
+		v[0] = g;
 		level = 0;
 	}
 

@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 public class LocalFunction implements IFunction 
 {
-	HashMap fields;
+	HashMap<String, Field> fields;
 	Method[] methods;
 	Class[] argClass, aC;
 	Object[] argObject, aO;
@@ -57,7 +57,7 @@ public class LocalFunction implements IFunction
 
     public Object exec(IGraph g) throws Exception 
 	{
-System.out.println("LocalFunction.exec(path): \n"+g);
+    	// System.out.println("LocalFunction.exec(path): \n"+g);
 
 		String token = g.getName();
 
@@ -156,18 +156,24 @@ System.out.println("LocalFunction.exec(path): \n"+g);
 	private void getArguments(IGraph g) throws Exception {
 		Object o;
 		nargs = 0;
+
 //System.out.println("LocalFunction: getArgs:\n"+g);
+		
 		for (int i = 0; i < g.size(); i++) 
 		{
-			o = Evaluate2.toScalarStrict(g.get(i));
+			o = Evaluate.toScalar(g.get(i));
 
 			if (o instanceof Double)
 				argClass[i] = double.class;
 			else if (o instanceof Long)
 				argClass[i] = long.class;
+			else if (o instanceof Boolean)
+				argClass[i] = boolean.class;
+			else if (o instanceof IGraph)
+				argClass[i] = ogdl.IGraph.class;
 			else
 				argClass[i] = o.getClass();
-
+			
 			argObject[i] = o;
 			nargs++;
 		}
@@ -180,7 +186,7 @@ System.out.println("LocalFunction.exec(path): \n"+g);
 		}
 	}
 
-	String message(String token) 
+	private String message(String token) 
 	{
 		StringBuffer sb = new StringBuffer();
 		sb.append("No method ");

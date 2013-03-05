@@ -184,7 +184,7 @@ public class Template extends ComplexPath
     		
     		if (s.equals(Types.VAR) || s.equals(Types.VARE) || s.equals(Types.PATH) || s.equals(Types.EXPR)) 
     		{
-    			Object o = Evaluate2.eval(node,g);
+    			Object o = Evaluate.eval(node,g);
 
     			if (print && o!=null && !s.equals(Types.VARE)) 
     			{  
@@ -197,7 +197,7 @@ public class Template extends ComplexPath
     			IGraph p1 = node.get(0);
     			IGraph p2 = node.get(1);
     		
-    			Object o = Evaluate2.eval(p2,g);
+    			Object o = Evaluate.eval(p2,g);
 
     			/* XXX Graph is Iterable so this may be superfluous: */
     			
@@ -206,7 +206,7 @@ public class Template extends ComplexPath
 					IGraph list = (IGraph) o;					
 					
 					for (int j = 0; j < list.size(); j++) {
-						Evaluate2.set(p1, list.get(j), g);							
+						Evaluate.set(p1, list.get(j), g);							
 						print(node.get(2), w, g, print);
 					}
 				}
@@ -214,7 +214,7 @@ public class Template extends ComplexPath
     			{
 					Iterator it = ((Iterable) o).iterator();				
 					while (it.hasNext()) {
-						Evaluate2.set(p1, it.next(), g);					
+						Evaluate.set(p1, it.next(), g);					
 						print(node.get(2), w, g, print);
 					}
     			}
@@ -222,7 +222,7 @@ public class Template extends ComplexPath
     			{
 					Iterator it = (Iterator) o;				
 					while (it.hasNext()) {
-						Evaluate2.set(p1, it.next(), g);					
+						Evaluate.set(p1, it.next(), g);					
 						print(node.get(2), w, g, print);
 					}
     			}
@@ -235,7 +235,7 @@ public class Template extends ComplexPath
 						
 						if (j>0) {
 						    for (int k=0; k<j; k++) {
-							    Evaluate2.set(p1, ""+k, g);					
+							    Evaluate.set(p1, ""+k, g);					
 							    print(node.get(2), w, g, print);
 						    }
 						}
@@ -247,7 +247,7 @@ public class Template extends ComplexPath
     				long j = (Long) o;
 					if (j>0) {
 						    for (int k=0; k<j; k++) {
-							    Evaluate2.set(p1, ""+k, g);					
+							    Evaluate.set(p1, ""+k, g);					
 							    print(node.get(2), w, g, print);
 						    }
 					}
@@ -255,7 +255,7 @@ public class Template extends ComplexPath
     		}
     		else if (s.equals(Types.IF)) 
     		{
-    			cond = Evaluate2.evalBoolean(node.get(0),g);
+    			cond = Evaluate.evalBoolean(node.get(0),g);
    			
     			if (cond == true) 
     				print(node.get(1),w,g,print);

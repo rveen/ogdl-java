@@ -19,5 +19,6 @@ public class Types
 	  ELSE     = "!else",
 	  TRUE     = "!true",
 	  FALSE    = "!false",
-	  NOP      = "!nop";	  
+	  NOP      = "!nop",
+	  ARG      = "!arg";
 }

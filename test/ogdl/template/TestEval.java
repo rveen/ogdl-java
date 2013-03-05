@@ -13,7 +13,7 @@ public class TestEval
 		g.add("b").add("x");
 		Template t = new Template("$$a");
 		
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		assertEquals(o,"x");
 	}
@@ -25,7 +25,7 @@ public class TestEval
 
 		Template t = new Template("$(''+a)");
 		
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		System.out.println("---\n"+o+"\n");
 		
@@ -40,7 +40,7 @@ public class TestEval
 
 		Template t = new Template("$(2+a)");
 
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		assertEquals(o.getClass().getName(),"java.lang.Long");
 		assertEquals(o,3L);
@@ -53,7 +53,7 @@ public class TestEval
 
 		Template t = new Template("$(2*a)");
 		
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		assertEquals(o.getClass().getName(),"java.lang.Long");
 		assertEquals(o,2L);
@@ -65,7 +65,7 @@ public class TestEval
 
 		Template t = new Template("$('a'+'01')");
 		
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		assertEquals(o.getClass().getName(),"java.lang.String");
 		assertEquals(o,"a01");
@@ -78,7 +78,7 @@ public class TestEval
 
 		Template t = new Template("$('a'+a)");
 		
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		assertEquals(o.getClass().getName(),"java.lang.String");
 		assertEquals(o,"a01");
@@ -92,7 +92,7 @@ public class TestEval
 
 		Template t = new Template("$(a==b)");
 		
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		System.out.println(o);
 	}
@@ -105,7 +105,7 @@ public class TestEval
 
 		Template t = new Template("$(b==a)");
 		
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		assertEquals(o.getClass().getName(),"java.lang.Boolean");
 		assertEquals(o,true);
@@ -122,7 +122,7 @@ public class TestEval
 		
 		System.out.println(t);
 		
-		Object o = Evaluate2.eval(t.g,g);
+		Object o = Evaluate.eval(t.g,g);
 		
 		//assertEquals(o.getClass().getName(),"java.lang.Boolean");
 		//assertEquals(o,true);
@@ -157,15 +157,15 @@ public class TestEval
 
 		Template t = new Template("$(a==1)");
 		
-		boolean b = Evaluate2.evalBoolean(t.g,g);
+		boolean b = Evaluate.evalBoolean(t.g,g);
 		assertEquals(b,true);
 		
 		t = new Template("$(a>0)");
-		b = Evaluate2.evalBoolean(t.g,g);
+		b = Evaluate.evalBoolean(t.g,g);
 		assertEquals(b,true);
 		
 		t = new Template("$(b==1)");
-		b = Evaluate2.evalBoolean(t.g,g);
+		b = Evaluate.evalBoolean(t.g,g);
 		assertEquals(b,false);
 		System.out.println(t.g);
 	}

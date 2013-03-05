@@ -25,6 +25,8 @@ import ogdl.support.*;
  * 
  * - Late evaluation of numbers (only in math context!), else when
  *   printing text with only numbers, leading zeros are eliminated.
+ *   
+ * - !obj needed ?
  * 
  */
 
@@ -32,7 +34,7 @@ public class Evaluate
 {
 	final static Boolean True = new Boolean(true);
 
-	private static boolean evalBoolean(IGraph expr, IGraph context) throws Exception
+	public static boolean evalBoolean(IGraph expr, IGraph context) throws Exception
 	{
 		Object o = eval(expr, context);
 		return toBoolean(o);
@@ -40,7 +42,7 @@ public class Evaluate
 	
 	/** This evaluator tries to support $$ */
 	
-	private static Object eval (IGraph expr, IGraph context) throws Exception
+	public static Object eval (IGraph expr, IGraph context) throws Exception
 	{  		
 		/** this flag is set to true when the name of the current node is
 		 * not a value but a directive (such as Types.EXPR, etc).
@@ -61,18 +63,26 @@ public class Evaluate
 		
 		Object o=null;
 		
+		/* Variables: $path, $$path, $!path, $$!path */
+		
 		if (s.equals(Types.VAR) || s.equals(Types.VARE)) 
 		{
 			expr = expr.get(0);
 			s = expr.getName();
-			/* One level of indirection, max */
-			if (s.equals(Types.VAR) || s.equals(Types.VARE)) {
+			
+			/* $$: One level of indirection, max.
+			 * 
+			 *  The result of the evaluation is used as expression
+			 *  to a new evaluation.
+			 */
+			
+			if (s.equals(Types.VAR) || s.equals(Types.VARE)) 
+			{
 				expr = expr.get(0);
 				o = eval(expr,context);
+				
 				/* o must be a String or IGraph */
-if (o!=null) {
-	//System.out.println("o is "+o.getClass().getName()+":\n"+o);
-}
+
 				if (o instanceof String) {
 					return eval(new Graph((String)o), context);
 				}
@@ -86,26 +96,26 @@ if (o!=null) {
 			else
 				return eval(expr,context);
 		}
-		
-		if (s.equals(Types.EXPR) ||	s.equals(Types.GROUP)) {
-			
+
+		if (s.equals(Types.EXPR) ||	s.equals(Types.GROUP)) 
+		{	
 			/* Continue below evaluating the subnodes */
 			ignore = true;
 		}
 		else if (s.equals(Types.PATH)) {
 			o = get(expr.get(0), context);				
-			return toScalar(o);
+			return toScalar_LateEval(o);
 		}
 		else if (type == 'p') {
 			o = get(expr, context);				
-			return toScalar(o);
+			return toScalar_LateEval(o);
 		}
 		else if (type == 'o') {
 			if (s.equals("!") || s.equals("~"))
 				o = eval_unary(expr, context);
 			else
 				o = eval_binary(expr, context);
-			return toScalar(o);
+			return toScalar_LateEval(o);
 		}
 		
 		/* scalar types */
@@ -129,98 +139,7 @@ if (o!=null) {
 			return null;
 		
 		IGraph r = ignore? new Graph():new Graph(expr.getName());
-// System.out.println("eval nodes from:\n"+expr);		
-		for (int i=0; i<expr.size(); i++) 
-		{
-			IGraph node;
-			Object o2 = eval(expr.get(i),context);
-			
-			if (! (o2 instanceof IGraph) ) {
-				if (o2 instanceof String)
-					node = new Graph((String)o2);
-				else {
-				    node = new Graph(Types.OBJECT);
-				    node.setValue(o2);
-				}
-			}
-			else
-				node = (IGraph) o2;
-			
-			if (o2 != null) {
-				if (transparent(node))
-					r.addNodes(node);
-				else
-			        r.add(node);
-			}
-		}			
-		return toScalar (r);
-	}
 	
-	private static Object eval2 (IGraph expr, IGraph context) throws Exception
-	{  		
-		/** this flag is set to true when the name of the current node is
-		 * not a value but a directive (such as Types.EXPR, etc).
-		 */
-		
-        boolean ignore=false;  
-        
-        /* remove an eventual solitary null node */
-		while (expr.size()==1 && transparent(expr)) 
-			expr = expr.get(0);
-		
-		/* if 'expr' has its value set, return that */
-	    if (expr.getValue() != null)
-	    	return expr.getValue();
-		
-		String s = expr.getName();
-		char type = type(s);
-		
-		Object o=null;
-		
-		if (s.equals(Types.EXPR) ||  s.equals(Types.VAR) || 
-			s.equals(Types.VARE) ||	s.equals(Types.GROUP)) {
-			
-			/* Continue below evaluating the subnodes */
-			ignore = true;
-		}
-		else if (s.equals(Types.PATH)) {
-			o = get(expr.get(0), context);				
-			return toScalar(o);
-		}
-		else if (type == 'p') {
-			o = get(expr, context);				
-			return toScalar(o);
-		}
-		else if (type == 'o') {
-			if (s.equals("!") || s.equals("~"))
-				o = eval_unary(expr, context);
-			else
-				o = eval_binary(expr, context);
-			return toScalar(o);
-		}
-		
-		/* scalar types */
-		
-		else if (expr.size()==0) 
-		{
-			if (type == 'i') 
-			    return  new Long(s);
-		    if (type == 'f')
-			    return new Double(s);
-		    if (s.equals("true"))
-			    return new Boolean(true);
-		    if (s.equals("false"))
-			    return new Boolean(false);
-		   return unquote(expr.getName());
-		}
-		
-		/* Evaluate the subnodes */
-		
-		if (expr.size() == 0 && ignore)
-			return null;
-		
-		IGraph r = ignore? new Graph():new Graph(expr.getName());
-// System.out.println("eval nodes from:\n"+expr);		
 		for (int i=0; i<expr.size(); i++) 
 		{
 			IGraph node;
@@ -244,8 +163,9 @@ if (o!=null) {
 			        r.add(node);
 			}
 		}			
-		return toScalar (r);
+		return toScalar_LateEval (r);
 	}
+
 	
 	/** This evaluator returns a Graph.
 	 * 
@@ -253,10 +173,10 @@ if (o!=null) {
 	 */
 
 	
-	private static IGraph evalGraph (IGraph e, IGraph g) throws Exception
+	static IGraph evalGraph (IGraph e, IGraph g) throws Exception
 	{  		
 		boolean ignore=false;
-//System.out.println("evalGraph in\n"+e);	
+
 		if (e == null)
 			return null;
 		
@@ -268,7 +188,7 @@ if (o!=null) {
 		
 		String s = e.getName();
 		char type = type(s);
-//System.out.println("el: "+s);
+
 		if (s.equals(Types.EXPR) ||  s.equals(Types.VAR) || 
 			s.equals(Types.VARE) ||	s.equals(Types.GROUP)) {
 			
@@ -314,24 +234,19 @@ if (o!=null) {
 			return null;
 		
 		for (int i=0; i<e.size(); i++) {
-//System.out.println("i:"+i+", "+e.get(i).getName());			
+		
 			IGraph n = evalGraph(e.get(i),g);
 			if (n == null)
 				continue;
-//System.out.println("evalGraph n: \n"+n);			
-			if (transparent(n))
-				r.addNodes(n);
-			else
-				r.add(n);
+			
+			r.add("!arg").add(n);
 		}
-//System.out.println("evalGraph r: \n"+r);		
 
-// System.out.println("ignore "+ignore+", "+e.getName());
 		return r;
 	}
 
 
-	private static Object eval_unary(IGraph e, IGraph g) throws Exception 
+	static Object eval_unary(IGraph e, IGraph g) throws Exception 
 	{
 		// Check for correct number of operands
 		if (e.size() != 1)
@@ -347,7 +262,7 @@ if (o!=null) {
 			throw new Exception("programmer error: unknown unary op: " + s);
 	}
 
-	private static Object invert(IGraph e, IGraph g) throws Exception 
+	static Object invert(IGraph e, IGraph g) throws Exception 
 	{
 		Object o = new Boolean(!evalBoolean(e, g));
 		return o;
@@ -359,7 +274,7 @@ if (o!=null) {
 	 * If Boolean, return the same as invert().
 	 */
 
-	private static Object negate(IGraph e, IGraph g) throws Exception 
+	static Object negate(IGraph e, IGraph g) throws Exception 
 	{
 		Object o = eval(e, g);
 
@@ -376,30 +291,22 @@ if (o!=null) {
 		throw new Exception("Cannot negate (~) a " + o.getClass().getName());
 	}
 
-	private static Object eval_binary(IGraph e, IGraph g) throws Exception 
+	static Object eval_binary(IGraph e, IGraph g) throws Exception 
 	{
-		/* Check for correct number of operands
-		 */
+		// Check for correct number of operands
 
 		if (e.size() != 2)
 			throw new Exception("Binary expression with " + e.size()
 					+ " operands");
 
 		String s = e.getName();
-		
-//System.out.println("oper "+s);	
-// System.out.println("get(0):\n"+e.get(0));
-//System.out.println("get(1):\n"+e.get(1));
 
 		Object o2 = eval(e.get(1), g);
-
-// if (o2!=null)System.out.println("o2: "+o2.getClass().getName());	
 
 		if (s.equals("="))
 			return _assign(e.get(0), o2, g);
 		
 		Object o1 = eval(e.get(0), g);		
-//System.out.println("o1: "+o1);
 
 		if (s.equals("+"))
 			return _sum(o1,o2, false);
@@ -431,7 +338,7 @@ if (o!=null) {
 		return null;
 	}
 	
-	private static boolean _or(Object a, Object b)
+	static boolean _or(Object a, Object b)
 	{
 		boolean x=false, y=false;
 		
@@ -448,7 +355,7 @@ if (o!=null) {
 		return x || y;
 	}
 	
-	private static boolean _and(Object a, Object b)
+	static boolean _and(Object a, Object b)
 	{
 		boolean x=false, y=false;
 		
@@ -478,31 +385,42 @@ if (o!=null) {
 	 * Else it returns the same object.
 	 */
 	
-	private static Object toScalar(Object o)
+	public static Object toScalar(Object o)
 	{
 		if (o == null) return null;
 
-	    if (! (o instanceof IGraph))	
-	    	return o;
-	    
-	    IGraph g = (IGraph) o;
-	    
-	    while (transparent(g) && g.size()==1)
-	    	g = g.get(0);
-	    
-	    if (g.size()>0)
-	    	return o;
-	    
-	    if (g.getValue() != null)
-	    	return g.getValue();
+	    String s = null;
 		
-		String s = g.getName();
-		
-		/* A root node without subelements is nothing */
-		if (Graph._NULL.equals(s)) return null;
-		
+		if (o instanceof IGraph)
+	    {
+
+			IGraph g = (IGraph) o;
+
+			while (transparent(g) && g.size() == 1)
+				g = g.get(0);
+			
+			if (Types.OBJECT.equals(g.getName()))
+				return g.getValue();
+
+			if (g.size() > 0)
+				return o;
+
+			if (g.getValue() != null)
+				return g.getValue();
+
+			s = g.getName();
+
+			/* A root node without subelements is nothing */
+			if (Graph._NULL.equals(s))
+				return null;
+		} 
+		else if (o instanceof String) 
+			s = (String) o;
+		else
+			return o;
+	        
 		char type = type(s);
-	    
+    
 	    try {
 			switch (type) {
 
@@ -522,11 +440,46 @@ if (o!=null) {
 			return s;
 		}
 	}
-
-	private static Object _sum(Object a, Object b, boolean op) throws Exception 
+	
+	public static Object toScalar_LateEval(Object o)
 	{
-//if (a!=null)System.out.println("a=("+a.getClass().getName()+")"+a);	
-//if (b!=null)System.out.println("b=("+b.getClass().getName()+")"+b);	
+		if (o == null) return null;
+	    
+		if (! (o instanceof IGraph)) 		
+	    	return o;
+	    
+	    IGraph g = (IGraph) o;
+	    
+	    while (transparent(g) && g.size()==1)
+	    	g = g.get(0);
+	    
+	    if (Types.OBJECT.equals(g.getName()))
+			return g.getValue();
+	    
+	    if (g.size()>0)
+	    	return o;
+	    
+	    if (g.getValue() != null)
+	    	return g.getValue();
+		
+		String s = g.getName();
+		
+		/* A root node without subelements is nothing */
+		if (Graph._NULL.equals(s)) return null;
+	
+		/* Now we just return the name as a string */
+
+		return trim(s);
+	}
+
+	static Object _sum(Object a, Object b, boolean op) throws Exception 
+	{	
+		if (a instanceof Integer) {
+        	a = new Long((Integer) a);
+        }
+        if (b instanceof Integer) {
+        	b = new Long((Integer) b);
+        }
 		
 		if (a instanceof Double) {
 			
@@ -560,13 +513,37 @@ if (o!=null) {
 			if (a==null && b == null) return "";
 			if (a==null) return ""+b;
 			if (b==null) return a;
-			return ""+a+b;
+			if (op) {
+				long l=0;
+				if (b instanceof String) {
+					l = Long.parseLong((String)b);
+				}
+				else if (b instanceof Long) {
+					l = (Long) b;
+				}
+				return Long.parseLong((String)a) - l;
+			}
+			else
+			    return ""+a+b;
 		}
 		return null;
 	}
 
-	private static Object _mul(Object a, Object b, boolean op) throws Exception 
-	{   
+	static Object _mul(Object a, Object b, boolean op) throws Exception 
+	{   	
+		if (a instanceof String)
+			a = toScalar((String)a);
+
+		if (b instanceof String)
+			b = toScalar((String)b);
+
+        if (a instanceof Integer) {
+        	a = new Long((Integer) a);
+        }
+        if (b instanceof Integer) {
+        	b = new Long((Integer) b);
+        }
+		
 		if (a instanceof Double) {
 			if (b instanceof Long)
 				return op ? new Double(((Double) a).doubleValue()
@@ -580,20 +557,18 @@ if (o!=null) {
 						* ((Double) b).doubleValue());
 		} else if (a instanceof Long) {
 			if (b instanceof Double)
-				return op ? new Double(((Double) b).doubleValue()
-						/ ((Long) a).longValue()) : new Double(((Double) b)
-						.doubleValue()
-						* ((Long) a).longValue());
+				return op ? 
+						new Double ( ((Long) a).longValue() / ((Double) b).doubleValue() ): 
+						new Double ( ((Long) a).longValue() / ((Double) b).doubleValue() );
 			else if (b instanceof Long)
-				return op ? new Long(((Long) b).longValue()
-						/ ((Long) a).longValue()) : new Long(((Long) b)
-						.longValue()
-						* ((Long) a).longValue());
+				return op ? 
+						new Long(((Long) a).longValue() / ((Long) b).longValue()) : 
+					    new Long(((Long) a).longValue()	* ((Long) b).longValue());
 		}
 		return null;
 	}
 
-	private static Object _assign(IGraph path, Object o2, IGraph g) throws Exception
+	static Object _assign(IGraph path, Object o2, IGraph g) throws Exception
 	{	
 		set(path, o2,g);
 		return o2;
@@ -608,7 +583,7 @@ if (o!=null) {
 	{
 		if (a==null || b==null)
 			return new Boolean(false);
-		
+			
 	    String sa = a.toString();
 	    String sb = b.toString();
 	    
@@ -618,20 +593,21 @@ if (o!=null) {
 		return new Boolean( sa.indexOf(sb) != -1 );
 	}
 
-	private static Object _equals(Object a, Object b, boolean polarity)
+	static Object _equals(Object a, Object b, boolean polarity)
 			throws Exception 
 	{
 		return new Boolean(compare(a, b) ? polarity : !polarity);
 	}
 
-	private static boolean compare(Object a, Object b) 
+	static boolean compare(Object a, Object b) 
 	{
-		
-//System.out.println("Expressions.compare ["+a+"]/["+b+"]");
 		if (a == null && b == null)
 			return true;
 	
-//System.out.println("Expressions.compare ["+a.getClass().getName()+"]/["+b.getClass().getName()+"]");
+		if (a == null || b == null)
+			return false;
+
+		a = toScalar(a); // First argument determines type.
 		
 		try {
 
@@ -723,10 +699,15 @@ if (o!=null) {
 		return false;
 	}
 	
-	private static boolean _greater(Object a, Object b) 
+	static boolean _greater(Object a, Object b) 
 	{
 		if (a == null || b == null)
 			return false;
+		
+		if (a == null || b == null)
+			return false;
+
+		a = toScalar(a); // First argument determines type.
 		
 		try {
 
@@ -793,7 +774,7 @@ if (o!=null) {
 
 	/** Strip white space and quotes at both ends on the given string. */
 
-	private static String trim(String s) 
+	public static String trim(String s) 
 	{
 		if (s == null)
 			return null;
@@ -812,7 +793,7 @@ if (o!=null) {
 	/** creates a new Graph with the result of applying path to g.
 	 */
 	
-	private static IGraph get(IGraph path, IGraph g) throws Exception 
+	public static IGraph get(IGraph path, IGraph g) throws Exception 
 	{
 		IGraph node = g, tmpNode, prev=null;
 		boolean list=true;
@@ -831,9 +812,6 @@ if (o!=null) {
 		while (path != null)
 		{
 			e = path.getName();
-			
-//System.out.println("get: path elem:"+e);
-//System.out.println("in context:\n"+node);
 
 			if (Types.INDEX.equals(e)) 
 			{
@@ -843,18 +821,18 @@ if (o!=null) {
 				 */
 				
 				Object o = eval(path.get(0), g);
-//System.out.println("get[]:\n"+path+"\n--\n"+o);				
+			
 				if (! (o instanceof Long) )
 					throw new Exception ("non numerical index "+e);
 				long l = ((Long)o).longValue();
-//System.out.println("get[]: index: "+l+", g:\n"+node);
+
 				if (l >= node.size())
 					return null;
 				tmpNode = node.get((int)l);
 				node = tmpNode;
 				
 				path = prev.get(ix++);		// XXX not normal
-//System.out.println("get[]: path after:\n"+path+"\nresult node:\n"+node);	
+
 				i++;
 				// list = false;
 				continue;
@@ -867,7 +845,10 @@ if (o!=null) {
 				tmpNode = node.getNode(e);
 				list = true;
 			}
-//System.out.println("tmpNode:\n"+tmpNode);
+
+			if (tmpNode==null && Types.OBJECT.equals(node.getName(0))) {
+				node = node.get(0);
+			}
 
 			if (tmpNode == null) 
 			{			
@@ -897,17 +878,25 @@ if (o!=null) {
 					 * $store.get(id)._doc.h1
 					 */
 					
+					IGraph args = new Graph(path.getName());
+					
 					/* We make a copy since we are going to modify */
+					
 					IGraph cp = (IGraph) path.clone();
 
-					_adjust(cp.get(0));
-					IGraph args = evalGraph(cp.get(0),g);
-//System.out.println("get: adjusted:\n"+cp);					
-//System.out.println("get: adjusted args:\n"+args);	
-
-					IGraph no = new Graph(path.getName());
-					no.add(args);					
-					value = ((IFunction) value).exec(no);  
+					/* XXX This part to be redesigned 
+					 * 
+					 * Now a(1,2) and a(1 2) evaluate to the same!
+					 * 
+					 */
+					
+					for (IGraph arg : cp) {
+					    _adjust(arg);
+					    IGraph a = evalGraph(arg,g);
+					    args.add(a);
+					}
+					
+					value = ((IFunction) value).exec(args);  
 
 					if (value == null)
 						return null;
@@ -935,8 +924,7 @@ if (o!=null) {
 						return null;
 
 					node.setValue(value);
-// System.out.println("node where object is set:"+node.getName());
-// System.out.println(" - object is:"+value);
+
 					tmpNode = node;
 					path = prev;
 				}
@@ -944,12 +932,10 @@ if (o!=null) {
 
 			i++;
 			node = tmpNode;
-			
-// System.out.println("get: node:\n"+node);			
+						
 			prev = path;
 			path = path.get(0);
 		}
-// System.out.println("get: before returning: i="+i+", node:\n"+node);
 		
 		if (i==0 || node == null) 
 			return null;
@@ -960,8 +946,6 @@ if (o!=null) {
 		    return r;
 		}
 		
-//System.out.println("last elem "+e+", node name: "+node.getName());
-		
 		/*
 		 * This avoids returning what we already know (ex: $a -> a)
 		 */
@@ -971,7 +955,7 @@ if (o!=null) {
         return node;
 	}
 	
-	private static void _adjust(IGraph g)
+	static void _adjust(IGraph g)
 	{
 		if (g==null) return;
 		
@@ -985,11 +969,8 @@ if (o!=null) {
 		}
 	}
 	
-	private static void set(IGraph path, Object value, IGraph g) 
+	public static void _set(IGraph path, Object value, IGraph g) throws Exception 
 	{
-		
-// System.out.println("set:\n"+path+"value=\n"+value);
-
 		IGraph node = g, tmp;
 		boolean path_end=false;
 		
@@ -1003,19 +984,36 @@ if (o!=null) {
 		
 		while (Types.EXPR.equals(path.getName()) || Types.PATH.equals(path.getName() ))
 			path = path.get(0);
-	
-//System.out.println("set: path:\n"+path);
-//System.out.println("set: value: "+value.getClass().getName());
 
 		while (true)
 		{
-			tmp = node.getNode(path.getName());	
+			String p = path.getName();
+			
+			int next = 0;
+			long index = -1;
+			
+			if (p.equals(Types.INDEX)) {
+				Object o = eval(path.get(0),g);
+				try {
+					index = ((Long) o);	
+					next++;
+				}
+				catch (Exception ex)
+				{
+					return;
+				}
+			}
+			
+			if (index>-1) 
+				tmp = node.get((int) index);
+			else
+			    tmp = node.getNode(path.getName());	
 
 			if (tmp == null) 
 				break;
 			
 			node = tmp;
-			IGraph w = path.get(0);
+			IGraph w = path.get(next);
 			if (w == null) {
 				path_end = true;
 				break; // end of path 
@@ -1039,29 +1037,104 @@ if (o!=null) {
 		}
 
 		node.remove();  // remove subnodes
-		
-// System.out.println("set: node name: "+node.getName());		
-// System.out.println("value class: "+value.getClass().getName());		
+			
 		if (value instanceof IGraph) 
 		{
 			tmp = (IGraph) value;
-
-//System.out.println("graph\n"+tmp);
-
-			
-			/*if (transparent(tmp))
-			    node.addNodes(tmp);
-			else*/ 
-				node.add(tmp);
+			node.add(tmp);
 
 		} 
 		else if (value instanceof String) {
 		    node.add((String)value);
 		}
-		/*
-		else if (value instanceof Long) {
-		    node.add("" + value);
-		}*/
+		else if (value != null ){
+			node = node.add(Types.OBJECT);
+			node.setValue(value);
+		}
+	}
+	
+	static void set(IGraph path, Object value, IGraph g) throws Exception 
+	{
+		IGraph node = g, tmp, prev=null;
+		
+		if (path == null)
+			return;
+		
+		while (Types.EXPR.equals(path.getName()) || Types.PATH.equals(path.getName() ))
+			path = path.get(0);
+
+		while (true)
+		{
+			String p = path.getName();
+			
+			if ("_name".equals(p)) {			// XXX hack needed for what?
+				node.setName(value.toString());
+			    return;
+		    }
+			
+			int next = 0;
+			long index = -1;
+			
+			if (p.equals(Types.INDEX)) {
+				Object o = eval(path.get(0),g);
+				o = toScalar(o);
+		
+				try {
+					index = ((Long) o);
+
+					next++;
+				}
+				catch (Exception ex)
+				{
+					return;
+				}
+			}	
+
+			if (index>-1)
+			{	
+				tmp = node.get((int) index);	
+				
+				if (tmp == null) 
+				{	
+					while (node.size() <= index) {
+						int i = node.size();
+						IGraph ix = new Graph("__"+i);
+						node.add(ix);
+					}
+					
+					node = node.get((int)index);								
+				}
+				else
+					node = tmp;
+	
+				path = prev;
+			}
+			else {
+			    tmp = node.getNode(p);	
+			    if (tmp == null)
+			    	node = node.add(p);
+			    else
+			    	node = tmp;
+			}
+			
+			prev = path;
+			path = path.get(next);
+			
+			if (path == null) {
+				break; 
+			}
+		}
+		
+		node.remove();  // remove subnodes
+			
+		if (value instanceof IGraph) 
+		{
+			tmp = (IGraph) value;
+			node.add(tmp);				
+		} 
+		else if (value instanceof String) {
+		    node.add((String)value);
+		}
 		else if (value != null ){
 			node = node.add(Types.OBJECT);
 			node.setValue(value);
@@ -1070,7 +1143,7 @@ if (o!=null) {
 	
 	/** @deprecated : use getFunction */
 	
-	private static Object getExtension(String name, IGraph args, IGraph context) 
+	public static Object getExtension(String name, IGraph args, IGraph context) 
 	{
 		Class c = null;
 
@@ -1100,12 +1173,12 @@ if (o!=null) {
 						}
 						catch (Exception ex2) {
 							try {
-								ex2.printStackTrace();
+								//ex2.printStackTrace();
 								return c.newInstance();
 							}
 							catch (Exception ex3)
 							{
-								ex3.printStackTrace();
+								//ex3.printStackTrace();
 								return null;
 							}
 						}
@@ -1123,7 +1196,7 @@ if (o!=null) {
 		}
 	}
 	
-	private static IFunction getFunction(String name, IGraph context) 
+	public static IFunction getFunction(String name, IGraph context) 
 	{
 		Class c = null;
 
@@ -1167,7 +1240,13 @@ if (o!=null) {
 	
 	private static boolean transparent(IGraph g)
 	{
-		return g.getName().equals(Graph._NULL);
+		if (Graph._NULL.equals(g.getName()))
+			return true;
+		
+		if (Types.ARG.equals(g.getName()))
+			return true;
+		
+		return false;
 	}
 	
 	public static int toInteger(Object o)
@@ -1251,7 +1330,7 @@ if (o!=null) {
 			toStrings(g.get(i));
 
 		String s = g.getName();
-// System.out.println("toStrings: "+s);
+
 		if (s.equals(Types.OBJECT)) {
 				g.setName(""+g.getValue());
 				g.setValue(null);

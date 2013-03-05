@@ -285,7 +285,7 @@ public class RFServer implements Runnable
 								log.severe("No !type for "+fn);
 							String ft = c.getNode("!type").getName(0);
 							log.finest("function: "+fn+", type: "+ ft);
-							f = Evaluate2.getFunction(ft, c);
+							f = Evaluate.getFunction(ft, c);
 							h.put(fn, f);
 						}
 

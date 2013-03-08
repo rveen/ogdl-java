@@ -26,11 +26,11 @@ public class LocalFunction implements IFunction
 {
 	HashMap<String, Field> fields;
 	Method[] methods;
-	Class[] argClass, aC;
+	Class<?>[] argClass, aC;
 	Object[] argObject, aO;
 	int nargs;
-	Class c = null;
-	Object o = null;
+	Class<?> c = null;
+	Object ci = null;
 
 	public LocalFunction(String className)
 	{
@@ -41,8 +41,8 @@ public class LocalFunction implements IFunction
 	{
 		try {
 			c = Class.forName(className);
-			o = newInstance(c, cfg);
-
+			ci = newInstance(c, cfg);
+			
 			methods = c.getMethods();
 			getFields();
 
@@ -57,7 +57,7 @@ public class LocalFunction implements IFunction
 
     public Object exec(IGraph g) throws Exception 
 	{
-    	// System.out.println("LocalFunction.exec(path): \n"+g);
+// System.out.println("LocalFunction.exec(path): \n"+g);
 
 		String token = g.getName();
 
@@ -66,19 +66,20 @@ public class LocalFunction implements IFunction
 		if (g.size() == 0 && fields != null) {
 			Field f = (Field) fields.get(token);
 			if (f != null)
-				return f.get(o);
+				return f.get(ci);
 			// add getter
 		}
 
 		getArguments(g);
 
 		try {
-			Method m = getMethod(token, aC);
-			return m.invoke(o, aO);
+			Method m = getMethod(token, aC);	
+			return m.invoke(ci, aO);
 		}
 
-		catch (NoSuchMethodException e) {
+		catch (Exception e) {
 			e.printStackTrace();
+			System.out.println(message(token));
 			return message(token);
 		}
 	}
@@ -95,7 +96,7 @@ public class LocalFunction implements IFunction
 		 */
 
 		for (int i = 0; i < methods.length; i++) {
-//System.out.println("LocalFunction: method "+methods[i].getName());
+// System.out.println("LocalFunction: method "+methods[i].getName());
 			if (!name.equals(methods[i].getName()))
 				continue;
 			Class ca[] = methods[i].getParameterTypes();
@@ -136,6 +137,8 @@ public class LocalFunction implements IFunction
 				Object o = c.newInstance();
 				return o;
 			} catch (Exception ex) {
+				System.err.println("Class has no default constructor!");
+				ex.printStackTrace();
 				return null;
 			}
 		}
@@ -157,7 +160,7 @@ public class LocalFunction implements IFunction
 		Object o;
 		nargs = 0;
 
-//System.out.println("LocalFunction: getArgs:\n"+g);
+// System.out.println("LocalFunction: getArgs:\n"+g);
 		
 		for (int i = 0; i < g.size(); i++) 
 		{

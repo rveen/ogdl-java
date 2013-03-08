@@ -232,14 +232,21 @@ public class Evaluate
 		
 		if (e.size() == 0 && ignore)
 			return null;
-		
+			
 		for (int i=0; i<e.size(); i++) {
 		
 			IGraph n = evalGraph(e.get(i),g);
+
 			if (n == null)
 				continue;
 			
-			r.add("!arg").add(n);
+			while (transparent(n) && n.size()==1) 	// XXX: Integrate into evalGraph
+				n = n.get(0);
+				
+			if (n.size()==0 || Types.ARG.equals(n.getName()))
+				r.add(n);
+			else
+			    r.add(Types.ARG).add(n);		
 		}
 
 		return r;
@@ -398,7 +405,7 @@ public class Evaluate
 
 			while (transparent(g) && g.size() == 1)
 				g = g.get(0);
-			
+
 			if (Types.OBJECT.equals(g.getName()))
 				return g.getValue();
 

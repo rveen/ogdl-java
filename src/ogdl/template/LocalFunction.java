@@ -1,5 +1,5 @@
 /* OGDL, Ordered Graph Data Language 
- * (c) R.Veen, 2005-2010.
+ * (c) R.Veen, 2005-2013.
  * License: zlib (see http://ogdl.org/license.htm)
  */
 
@@ -12,6 +12,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
 
 /**
  * Instrospection front-end that converts Java classes into IFunction's.
@@ -31,6 +36,8 @@ public class LocalFunction implements IFunction
 	int nargs;
 	Class<?> c = null;
 	Object ci = null;
+	
+	Logger log = Logger.getLogger(this.getClass().getName()); 
 
 	public LocalFunction(String className)
 	{
@@ -39,6 +46,8 @@ public class LocalFunction implements IFunction
 
 	public LocalFunction(String className, IGraph cfg) 
 	{
+		//log.setLevel(Level.FINE); // during debug
+        
 		try {
 			c = Class.forName(className);
 			ci = newInstance(c, cfg);
@@ -53,11 +62,13 @@ public class LocalFunction implements IFunction
 			ex.printStackTrace();
 			return;
 		}
+		
+		
 	}
 
     public Object exec(IGraph g) throws Exception 
 	{
-// System.out.println("LocalFunction.exec(path): \n"+g);
+    	log.fine("input\n"+g);
 
 		String token = g.getName();
 
@@ -74,12 +85,14 @@ public class LocalFunction implements IFunction
 
 		try {
 			Method m = getMethod(token, aC);	
-			return m.invoke(ci, aO);
+			Object o = m.invoke(ci, aO);
+		    log.fine("invoked: "+methodString(token));
+		    return o;
 		}
 
 		catch (Exception e) {
-			e.printStackTrace();
-			System.out.println(message(token));
+			// e.printStackTrace();
+			log.warning(message(token));
 			return message(token);
 		}
 	}
@@ -207,6 +220,26 @@ public class LocalFunction implements IFunction
 
 		return sb.toString();
 	}
+	
+	private String methodString(String token) 
+	{
+		StringBuffer sb = new StringBuffer();
+		sb.append(c.getName());
+		sb.append('.');
+		sb.append(token);
+		sb.append('(');
+
+		for (int i = 0; i < nargs; i++) {
+			if (i > 0)
+				sb.append(',');
+			sb.append(argClass[i].getName());
+		}
+
+		sb.append(')');
+		
+
+		return sb.toString();
+	}
 
 	public void close() {}
 
@@ -215,3 +248,4 @@ public class LocalFunction implements IFunction
 	}
 
 }
+

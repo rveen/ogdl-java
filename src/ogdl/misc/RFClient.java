@@ -33,7 +33,7 @@ public class RFClient implements IFunction
     int timeout = TIMEOUT_LONG;
     boolean ssl=false;
     int retry = 0;
-    static Logger log = Logger.getLogger(RFServer.class.getName());
+    Logger log = Logger.getLogger(this.getClass().getName());
     
     /** This flag is set when we have to send the complete
      *  graph, including the root node name.

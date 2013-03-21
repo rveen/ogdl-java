@@ -36,7 +36,7 @@ public class RFServer implements Runnable
 	IGraph g_error, g_exception, g_version, g_name;
 	IGraph cla;
 
-	Logger log = Logger.getLogger(RFServer.class.getName());
+	Logger log = Logger.getLogger(this.getClass().getName());
 	
 	public RFServer(int port, IGraph cfg, boolean ssl) throws Exception
     {

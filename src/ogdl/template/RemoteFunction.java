@@ -1,5 +1,5 @@
 /* OGDL, Ordered Graph Data Language 
- * (c) R.Veen, 2002-2006.
+ * (c) R.Veen, 2002-2013.
  * License: see http://ogdl.org/ (similar to zlib)
  */
 
@@ -60,7 +60,7 @@ public class RemoteFunction implements IFunction
     		open(host,port,timeout);
     }
    
-    public RemoteFunction(IGraph conf /*, IGraph context*/) throws Exception 
+    public RemoteFunction(IGraph conf) throws Exception 
     {
     	String host = conf.getString("host");
     	String s = conf.getString("port");
@@ -84,11 +84,6 @@ public class RemoteFunction implements IFunction
     	socket.setTcpNoDelay(true);
  	
     	socket.connect(new InetSocketAddress(host,port));
-    	
-    	//socket = new Socket(host,port);
-
-        // socket.setSoTimeout( timeout==0? timeout:tout);
-        // socket.setTcpNoDelay(true);
       
         out = socket.getOutputStream();
         in = socket.getInputStream();
@@ -196,8 +191,8 @@ public class RemoteFunction implements IFunction
     }
     public long ping(int millis) throws Exception
     {
-    	//if (socket == null || !socket.isConnected())
-    		//throw new Exception ("socket is not connected");
+    	if (socket == null || !socket.isConnected())
+    		throw new Exception ("socket is not connected");
  
     	socket.setSoTimeout(millis);
     	socket.setTcpNoDelay(true);
@@ -208,8 +203,7 @@ public class RemoteFunction implements IFunction
     	long t0 = System.currentTimeMillis();
     	
     	IGraph r = call(f);	
-    	
-//System.out.println("r--:\n"+r);    	
+
     	long t1 = System.currentTimeMillis();
     	
     	socket.setSoTimeout(TIMEOUT_LONG);

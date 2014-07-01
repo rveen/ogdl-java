@@ -141,6 +141,14 @@ public class Graph implements IGraph
 		if (size()>n)
 		    v.setSize(n);
 	}
+	
+	public boolean isNull() {
+		return this.name.equals(_NULL);
+	}
+	
+	public boolean isNil() {
+		return this.name.equals(_NULL);
+	}
 
 	public IGraph add(IGraph g) 
 	{
@@ -430,6 +438,15 @@ public class Graph implements IGraph
 		if (o == null) return null;
 		
 		return o.toString();
+	}
+	
+	public int getInt(String path) throws Exception 
+	{
+		Object o = get((IPath) new Path(path));		
+		if (o == null) throw new Exception("not found");
+
+        String s = o.toString();
+        return Integer.parseInt(s);
 	}
 
 	/** get the subnode at index */

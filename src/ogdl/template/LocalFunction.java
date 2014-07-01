@@ -12,16 +12,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
 
-/**
- * Instrospection front-end that converts Java classes into IFunction's.
- * 
- * $Id$
+/** Instrospection front-end that converts Java classes into IFunction's.
  * 
  * XXX Spec: from String to IGraph to Java method/field call. This is what ComplexPath should implement
  * XXX Look at org.apache.velocity.util.introspection before redesigning this class.
@@ -68,7 +63,12 @@ public class LocalFunction implements IFunction
 
     public Object exec(IGraph g) throws Exception 
 	{
+    	if (ci == null)
+    		throw new Exception("cannot exec() because no class could be instantiated in newInstance(). Maybe wrong constructor config parameters");
+    	
     	log.fine("input\n"+g);
+// System.out.println("LocalFuntion.exec:\n"+g); 
+// System.out.println("LocalFuntion.class:\n"+ci.getClass().getName());    	
 
 		String token = g.getName();
 
@@ -85,31 +85,39 @@ public class LocalFunction implements IFunction
 
 		try {
 			Method m = getMethod(token, aC);	
-			Object o = m.invoke(ci, aO);
+			Object o;
+
+// System.out.println("LocalFuntion.class: method "+m);    				
+
+            if (aO.length==0)
+				o = m.invoke(ci);
+			else
+				o = m.invoke(ci, aO);
 		    log.fine("invoked: "+methodString(token));
 		    return o;
 		}
 
 		catch (Exception e) {
-			// e.printStackTrace();
-			log.warning(message(token));
+			e.printStackTrace();
+			log.warning("method not found or invocation failed: "+message(token));
 			return message(token);
 		}
 	}
 
-	private Method getMethod(String name, Class[] args) throws Exception 
-	{
+	private Method getMethod(String name, Class<?>[] args) throws Exception 
+	{	
 		Method m = c.getMethod(name, args);
+
 		if (m != null)
 			return m;
 
-		/*
-		 * no method with exact the same arguments Get the first less specific
+		/* No method with exact the same arguments.
+		 * Get the first less specific
 		 * method: XXX search for the best !!
 		 */
 
 		for (int i = 0; i < methods.length; i++) {
-// System.out.println("LocalFunction: method "+methods[i].getName());
+
 			if (!name.equals(methods[i].getName()))
 				continue;
 			Class ca[] = methods[i].getParameterTypes();
@@ -125,18 +133,21 @@ public class LocalFunction implements IFunction
 			return methods[i];
 		}
 		return null;
-	}
+	}	
 
-	
+	/** Get all public fields in the inspected class
+	 * 
+	 * This function creates a hashmap with field
+	 * string pointing to Field objects.
+	 */
 
-	/** get all public fields */
-
-	private void getFields() throws Exception {
+	private void getFields() throws Exception 
+	{
 		Field[] f = c.getFields();
 		if (f == null)
 			return;
 
-		fields = new HashMap();
+		fields = new HashMap<String, Field>();
 
 		for (int i = 0; i < f.length; i++)
 			fields.put(f[i].getName(), f[i]);
@@ -150,8 +161,7 @@ public class LocalFunction implements IFunction
 				Object o = c.newInstance();
 				return o;
 			} catch (Exception ex) {
-				System.err.println("Class has no default constructor!");
-				ex.printStackTrace();
+				log.severe("Class has no default constructor");
 				return null;
 			}
 		}
@@ -164,21 +174,21 @@ public class LocalFunction implements IFunction
 				Object o = c.newInstance();
 				return o;
 			} catch (Exception ex) {
+				log.severe("Class could not be instantiated");
 				return null;
 			}
 		}
 	}
 
-	private void getArguments(IGraph g) throws Exception {
+	private void getArguments(IGraph g) throws Exception 
+	{
 		Object o;
 		nargs = 0;
-
-// System.out.println("LocalFunction: getArgs:\n"+g);
 		
 		for (int i = 0; i < g.size(); i++) 
 		{
 			o = Evaluate.toScalar(g.get(i));
-
+// System.out.println("LocalFunction: argument "+g.get(i).getName()+" = "+o.getClass().getName());
 			if (o instanceof Double)
 				argClass[i] = double.class;
 			else if (o instanceof Long)
@@ -241,7 +251,15 @@ public class LocalFunction implements IFunction
 		return sb.toString();
 	}
 
-	public void close() {}
+	public void close() {
+		IGraph c = new Graph("close");
+		try {
+			exec(c);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	protected void finalize() throws Throwable {
 		close();

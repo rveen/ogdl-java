@@ -26,6 +26,23 @@ public final class OgdlEmitter
         return sb.toString();
     }
     
+    public static String toStringAll(IGraph g) 
+    {
+        StringBuffer sb = new StringBuffer();
+        
+        if (g.getName() != null) 
+        {
+            addString(sb,g.getName(),0);
+            addNodes(sb,g,1);
+        }
+        else {
+        	addString(sb,"__nullName__",0);
+        	addNodes(sb,g,0);
+        }
+	
+        return sb.toString();
+    }
+    
     public static String toString(IGraph g, boolean root) 
     {
         StringBuffer sb = new StringBuffer();

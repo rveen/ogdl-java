@@ -57,7 +57,8 @@ public interface IGraph extends Iterable<IGraph>
     
     IGraph       getNode (String name);
     
-    String		 getString(String path) throws Exception;
+    String		 getString (String path) throws Exception;
+    int          getInt (String path) throws Exception;
     
     IGraph       add (String path, Object value) throws Exception;
     IGraph       add (String name);
@@ -167,4 +168,7 @@ public interface IGraph extends Iterable<IGraph>
     //String	 getString(IPath path) throws Exception;
     //IGraph     add (IPath  path, Object value) throws Exception;
     //IGraph     set (IPath path,  Object value) throws Exception;
+    
+    boolean isNil();
+    boolean isNull();
 }

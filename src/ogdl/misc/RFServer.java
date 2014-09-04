@@ -87,7 +87,7 @@ public class RFServer implements Runnable
             try
             {
             	Socket socket = ssocket.accept();
-            	// socket.setSoTimeout(1000);
+            	socket.setSoTimeout(10000);
 
     			log.info("Connection accepted");
 

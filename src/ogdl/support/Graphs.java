@@ -7,6 +7,7 @@ package ogdl.support;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 import java.util.Comparator;
 
@@ -110,14 +111,13 @@ public final class Graphs
      * 
      * 
      */
-    
     public static IGraph filterByAcl(IGraph in, IGraph access)
     {
     	IGraph g = (IGraph) in.clone();
     	return filterByAcl_(g,access);
     }
     
-    static IGraph filterByAcl_(IGraph g, IGraph access)
+    private static IGraph filterByAcl_(IGraph g, IGraph access)
     {	
     	if (g.size()>0) {
     		String name = g.get(0).getName();
@@ -162,4 +162,46 @@ public final class Graphs
     	for (int i=0; i<ss.length; i++)
     		g.add(ss[i]);
     }
+    
+    /**
+	 * Convert a tree to a map, where attribute names are paths that lead to a
+	 * leaf node, the value.
+	 * 
+	 * Example:
+	 * 
+	 * a b c
+	 * 
+	 * becomes
+	 * 
+	 * a.b -> c
+	 */
+    
+    public static HashMap<String, String> toMap(IGraph g) {
+    	
+    	HashMap<String, String> h = new HashMap<String, String>();
+    	toMap(g,"",h);
+    	return h;
+    }
+
+	private static void toMap(IGraph g, String f, HashMap<String, String> h) {
+		for (IGraph node : g) {
+
+			String name = node.getName();
+
+			if (name.equals("ogdl"))
+				return;
+
+			if (node.size() == 0) {
+				// We hit a leaf node. Is f not empty?
+				if (f.length() > 0) {
+					h.put(f, name);
+				}
+			} else {
+				if (f.length() > 0)
+					toMap(node, f + "." + name, h);
+				else
+					toMap(node, name, h);
+			}
+		}
+	}
 }

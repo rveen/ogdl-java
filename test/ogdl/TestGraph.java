@@ -146,7 +146,7 @@ public class TestGraph {
 		assertTrue(s.equals("p"));
 	}
 	
-	@Test
+	@Test(expected=RuntimeException.class)
 	public void testAfterParenthesis() throws Exception
 	{
 		String s = "a b(c, d)e";
